@@ -1,13 +1,13 @@
-# Package Name
-Add package description
+# trajectory_analysis_tools
+Tools to analyze the decoded posterior probability of position
 
 ### Installation
 ```bash
-pip install replay_identification
+pip install trajectory_analysis_tools
 ```
 Or
 ```bash
-conda install -c edeno replay_identification
+conda install -c edeno trajectory_analysis_tools
 ```
 Or
 ```bash
@@ -19,11 +19,11 @@ python setup.py install
 
 ### Developer Installation
 1. Install miniconda (or anaconda) if it isn't already installed.
-2. git clone <package.git>
+2. git clone https://github.com/edeno/trajectory_analysis_tools.git
 2. Setup editiable package with dependencies
 ```bash
 cd <package folder>
 conda env create -f environment.yml
-conda activate replay_identification
+conda activate trajectory_analysis_tools
 python setup.py develop
 ```

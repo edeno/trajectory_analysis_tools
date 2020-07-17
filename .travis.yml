@@ -13,8 +13,8 @@ install:
   - conda update -q conda
   - conda info -a
   - conda env create -f environment.yml
-  - source activate package_template
+  - source activate trajectory_analysis_tools
   - python setup.py develop
-script: pytest --cov=package_template tests/
+script: pytest --cov=trajectory_analysis_tools tests/
 after_success:
     - coveralls

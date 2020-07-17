@@ -1,4 +1,4 @@
-name: package_template
+name: trajectory_analysis_tools
 channels:
 - defaults
 - conda-forge
