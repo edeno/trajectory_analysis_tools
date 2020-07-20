@@ -91,3 +91,6 @@ coverage.xml
 .DS_Store
 *.png
 *.mp4
+
+*.nc
+*.pkl
