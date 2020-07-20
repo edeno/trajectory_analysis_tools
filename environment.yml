@@ -10,6 +10,8 @@ dependencies:
 - networkx
 - matplotlib
 - loren_frank_data_processing
+- replay_trajectory_classification
+- ripple_detection
 - xarray
 - pandas
 - jupyter
