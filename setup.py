@@ -2,8 +2,7 @@
 
 from setuptools import find_packages, setup
 
-INSTALL_REQUIRES = ['numpy', 'numba', 'scipy', 'scikit-learn', 'matplotlib',
-                    'xarray', 'pandas', 'dask', 'tqdm', 'statsmodels', 'patsy']
+INSTALL_REQUIRES = ['numpy', 'scipy', 'networkx', 'pandas']
 TESTS_REQUIRE = ['pytest >= 2.7.1']
 
 setup(

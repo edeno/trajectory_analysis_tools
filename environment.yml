@@ -2,19 +2,16 @@ name: trajectory_analysis_tools
 channels:
 - defaults
 - conda-forge
+- edeno
 dependencies:
 - "python>=3.6"
 - numpy
-- numba
 - scipy
-- scikit-learn
+- networkx
 - matplotlib
+- loren_frank_data_processing
 - xarray
 - pandas
-- dask
-- tqdm
-- statsmodels
-- patsy
 - jupyter
 - jupyterlab
 - nb_conda
