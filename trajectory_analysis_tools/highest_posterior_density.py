@@ -2,8 +2,9 @@ import numpy as np
 
 
 def highest_posterior_density(posterior_density, coverage=0.95):
-    """
-    Same as credible interval
+    """Estimate of the posterior spread that can account for multimodal
+    distributions.
+
     https://stats.stackexchange.com/questions/240749/how-to-find-95-credible-interval
 
     Parameters
