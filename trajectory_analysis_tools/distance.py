@@ -144,7 +144,8 @@ def _calculate_distance(track_graph, source="actual_position",
                                    target=target, weight='distance')
 
 
-def get_trajectory_data(posterior, track_graph, decoder, position_info, direction_variable="head_direction"):
+def get_trajectory_data(posterior, track_graph, decoder, position_info,
+                        direction_variable="head_direction"):
     map_position_2d, map_edges = _get_MAP_estimate_2d_position_edges(
         posterior, track_graph, decoder)
     actual_projected_position = np.asarray(position_info[
@@ -153,14 +154,15 @@ def get_trajectory_data(posterior, track_graph, decoder, position_info, directio
     track_segment_id = np.asarray(position_info.track_segment_id).astype(
         int).squeeze()
     actual_edges = np.asarray(track_graph.edges)[track_segment_id]
-    head_directions = np.asarray(position_info[direction_variable])
+    directions = np.asarray(position_info[direction_variable])
 
-    return (actual_projected_position, actual_edges, head_directions,
+    return (actual_projected_position, actual_edges, directions,
             map_position_2d, map_edges)
 
 
 def get_distance_metrics(track_graph, actual_projected_position, actual_edges,
-                         orientations, map_position_2d, map_edges):
+                         orientations, mental_position_2d,
+                         mental_position_edges):
 
     copy_graph = track_graph.copy()
     mental_position_ahead_behind_animal = []
@@ -168,7 +170,7 @@ def get_distance_metrics(track_graph, actual_projected_position, actual_edges,
 
     for actual_pos, actual_edge, orientation, map_pos, map_edge in zip(
             actual_projected_position, actual_edges, orientations,
-            map_position_2d, map_edges):
+            mental_position_2d, mental_position_edges):
         # Insert nodes for actual position, mental position, head
         copy_graph = _setup_track_graph(
             copy_graph, actual_pos, actual_edge, orientation, map_pos,
@@ -188,7 +190,8 @@ def get_distance_metrics(track_graph, actual_projected_position, actual_edges,
         copy_graph.remove_node("head")
         copy_graph.remove_node("mental_position")
 
-    return pd.DataFrame({
-        "mental_position_ahead_behind_animal": mental_position_ahead_behind_animal,
-        "mental_position_distance_from_animal": mental_position_distance_from_animal,
-    })
+    return pd.DataFrame(
+        {
+            "mental_position_ahead_behind_animal": mental_position_ahead_behind_animal,  # noqa
+            "mental_position_distance_from_animal": mental_position_distance_from_animal,  # noqa
+        })
