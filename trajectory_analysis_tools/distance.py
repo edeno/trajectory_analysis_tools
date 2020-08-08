@@ -9,15 +9,15 @@ def _get_MAP_estimate_2d_position_edges(posterior, track_graph, decoder):
         posterior.where(decoder.is_track_interior_).argmax(
             "position", skipna=True).values
     )
-    map_position_2d = decoder.place_bin_center_2D_position_[
+    mental_position_2d = decoder.place_bin_center_2D_position_[
         map_position_ind]
 
     # Figure out which track segment it belongs to
     track_segment_id = decoder.place_bin_center_ind_to_edge_id_[
         map_position_ind]
-    map_edges = np.array(track_graph.edges)[track_segment_id]
+    mental_position_edges = np.array(track_graph.edges)[track_segment_id]
 
-    return map_position_2d, map_edges
+    return mental_position_2d, mental_position_edges
 
 
 def _points_toward_node(track_graph, edge, head_direction):
@@ -146,7 +146,8 @@ def _calculate_distance(track_graph, source="actual_position",
 
 def get_trajectory_data(posterior, track_graph, decoder, position_info,
                         direction_variable="head_direction"):
-    map_position_2d, map_edges = _get_MAP_estimate_2d_position_edges(
+    (mental_position_2d,
+     mental_position_edges) = _get_MAP_estimate_2d_position_edges(
         posterior, track_graph, decoder)
     actual_projected_position = np.asarray(position_info[
         ["projected_x_position", "projected_y_position"]
@@ -157,7 +158,7 @@ def get_trajectory_data(posterior, track_graph, decoder, position_info,
     directions = np.asarray(position_info[direction_variable])
 
     return (actual_projected_position, actual_edges, directions,
-            map_position_2d, map_edges)
+            mental_position_2d, mental_position_edges)
 
 
 def get_distance_metrics(track_graph, actual_projected_position, actual_edges,
