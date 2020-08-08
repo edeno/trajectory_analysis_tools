@@ -144,16 +144,16 @@ def _calculate_distance(track_graph, source="actual_position",
                                    target=target, weight='distance')
 
 
-def get_trajectory_data(posterior, track_graph, decoder, position_info):
+def get_trajectory_data(posterior, track_graph, decoder, position_info, direction_variable="head_direction"):
     map_position_2d, map_edges = _get_MAP_estimate_2d_position_edges(
         posterior, track_graph, decoder)
-    actual_projected_position = position_info[
+    actual_projected_position = np.asarray(position_info[
         ["projected_x_position", "projected_y_position"]
-    ].values
-    track_segment_id = position_info.track_segment_id.values.astype(
+    ])
+    track_segment_id = np.asarray(position_info.track_segment_id).astype(
         int).squeeze()
     actual_edges = np.asarray(track_graph.edges)[track_segment_id]
-    head_directions = position_info.head_direction.values
+    head_directions = np.asarray(position_info[direction_variable])
 
     return (actual_projected_position, actual_edges, head_directions,
             map_position_2d, map_edges)
