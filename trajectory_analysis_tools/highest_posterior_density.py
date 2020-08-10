@@ -48,7 +48,7 @@ def get_highest_posterior_threshold(posterior, coverage=0.95):
 
 
 def get_HPD_spatial_coverage(posterior, hpd_threshold):
-    """Amount of the environment covered by the higest posterior values.
+    """Total area of the environment covered by the higest posterior values.
 
     Parameters
     ----------
