@@ -38,3 +38,22 @@ def highest_posterior_density(posterior_density, coverage=0.95):
     threshold = sorted_norm_posterior[(
         np.arange(n_time), crit_ind)] * const.squeeze()
     return threshold
+
+
+def get_HPD_spatial_coverage(posterior, hpd_threshold):
+    """Amount of the environment covered by the higest posterior values.
+
+    Parameters
+    ----------
+    posterior : xarray.DataArray, shape (n_time, n_position_bins) or
+        shape (n_time, n_x_bins, n_y_bins)
+    hpd_threshold : numpy.ndarray, shape (n_time,)
+
+
+    Returns
+    -------
+    spatial_coverage : float
+        Amount of the environment covered by the higest posterior values.
+    """
+    isin_hpd = posterior >= hpd_threshold[:, np.newaxis]
+    return (isin_hpd * np.diff(posterior.position)[0]).sum("position").values
