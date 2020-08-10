@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def highest_posterior_density(posterior_density, coverage=0.95):
+def get_highest_posterior_threshold(posterior, coverage=0.95):
     """Estimate of the posterior spread that can account for multimodal
     distributions.
 
@@ -9,7 +9,7 @@ def highest_posterior_density(posterior_density, coverage=0.95):
 
     Parameters
     ----------
-    posterior_density : xarray.DataArray, shape (n_time, n_position_bins) or
+    posterior : xarray.DataArray, shape (n_time, n_position_bins) or
         shape (n_time, n_x_bins, n_y_bins)
     coverage : float, optional
 
@@ -18,23 +18,30 @@ def highest_posterior_density(posterior_density, coverage=0.95):
     threshold : ndarray, shape (n_time,)
 
     """
+    # Stack 2D positions into one dimension
     try:
-        posterior_density = posterior_density.stack(
+        posterior = posterior.stack(
             z=["x_position", "y_position"]
         ).values
     except KeyError:
-        posterior_density = posterior_density.values
-    const = np.sum(posterior_density, axis=1, keepdims=True)
-    sorted_norm_posterior = np.sort(posterior_density, axis=1)[:, ::-1] / const
+        posterior = posterior.values
+
+    # Remove positions that are all NaNs
+    not_nan_positions = np.nonzero(
+        np.all(~np.isnan(posterior), axis=0))
+    posterior = posterior[:, not_nan_positions]
+
+    const = np.sum(posterior, axis=1, keepdims=True)
+    sorted_norm_posterior = np.sort(posterior, axis=1)[:, ::-1] / const
     posterior_less_than_coverage = np.cumsum(
         sorted_norm_posterior, axis=1) >= coverage
     crit_ind = np.argmax(posterior_less_than_coverage, axis=1)
     # Handle case when there are no points in the posterior less than coverage
     crit_ind[posterior_less_than_coverage.sum(axis=1) == 0] = (
-        posterior_density.shape[1] - 1
+        posterior.shape[1] - 1
     )
 
-    n_time = posterior_density.shape[0]
+    n_time = posterior.shape[0]
     threshold = sorted_norm_posterior[(
         np.arange(n_time), crit_ind)] * const.squeeze()
     return threshold
