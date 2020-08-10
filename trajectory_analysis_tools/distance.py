@@ -146,6 +146,39 @@ def _calculate_distance(track_graph, source="actual_position",
 
 def get_trajectory_data(posterior, track_graph, decoder, position_info,
                         direction_variable="head_direction"):
+    """Convenience function for getting the most likely position of the
+    posterior position and actual position/direction of the animal.
+
+    Parameters
+    ----------
+    posterior: xarray.DataArray, shape (n_time, n_position_bins)
+        Decoded probability of position
+    track_graph : networkx.Graph
+        Graph representation of the environment
+    decoder : SortedSpikesDecoder, ClusterlessDecoder, SortedSpikesClassifier,
+              ClusterlessClassifier
+        Model used to decode the data
+    position_info : pandas.DataFrame, shape (n_time, n_variables)
+        Information about the animal's behavior
+    direction_variable : str
+        The variable in `position_info` that indicates the direction of the
+        animal
+
+    Returns
+    -------
+    actual_projected_position : numpy.ndarray, shape (n_time, 2)
+        2D position of the animal projected onto the `track_graph`.
+    actual_edges : numpy.ndarray, shape (n_time,)
+        Edge of the `track_graph` that the animal is currently on.
+    actual_orientation : numpy.ndarray, shape (n_time,)
+        Orientation of the animal in radians.
+    mental_position_2d : numpy.ndarray, shape (n_time, 2)
+        Most likely decoded position
+    mental_position_edges : numpy.ndarray, shape (n_time,)
+        Edge of the `track_graph` that most likely decoded position corresponds
+        to.
+
+    """
     (mental_position_2d,
      mental_position_edges) = _get_MAP_estimate_2d_position_edges(
         posterior, track_graph, decoder)
@@ -155,22 +188,45 @@ def get_trajectory_data(posterior, track_graph, decoder, position_info,
     track_segment_id = np.asarray(position_info.track_segment_id).astype(
         int).squeeze()
     actual_edges = np.asarray(track_graph.edges)[track_segment_id]
-    directions = np.asarray(position_info[direction_variable])
+    actual_orientation = np.asarray(position_info[direction_variable])
 
-    return (actual_projected_position, actual_edges, directions,
+    return (actual_projected_position, actual_edges, actual_orientation,
             mental_position_2d, mental_position_edges)
 
 
 def get_distance_metrics(track_graph, actual_projected_position, actual_edges,
-                         orientations, mental_position_2d,
+                         actual_orientation, mental_position_2d,
                          mental_position_edges):
+    """
 
+    Parameters
+    ----------
+    track_graph : networkx.Graph
+        Graph representation of the environment
+    actual_projected_position : numpy.ndarray, shape (n_time, 2)
+        2D position of the animal projected onto the `track_graph`.
+    actual_edges : numpy.ndarray, shape (n_time,)
+        Edge of the `track_graph` that the animal is currently on.
+    actual_orientation : numpy.ndarray, shape (n_time,)
+        Orientation of the animal in radians.
+    mental_position_2d : numpy.ndarray, shape (n_time, 2)
+        Most likely decoded position
+    mental_position_edges : numpy.ndarray, shape (n_time,)
+        Edge of the `track_graph` that most likely decoded position corresponds
+        to.
+
+    Returns
+    -------
+    distance_metrics : pandas.DataFrame, shape (n_time, 2)
+        Information about the distance of the animal to the mental position.
+
+    """
     copy_graph = track_graph.copy()
     mental_position_ahead_behind_animal = []
     mental_position_distance_from_animal = []
 
     for actual_pos, actual_edge, orientation, map_pos, map_edge in zip(
-            actual_projected_position, actual_edges, orientations,
+            actual_projected_position, actual_edges, actual_orientation,
             mental_position_2d, mental_position_edges):
         # Insert nodes for actual position, mental position, head
         copy_graph = _setup_track_graph(
