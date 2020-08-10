@@ -27,5 +27,32 @@ def maximum_a_posteriori_estimate(posterior_density):
 
 
 def sample_posterior(posterior, place_bin_edges, n_samples=1000):
-    hist_dist = rv_histogram((posterior, place_bin_edges))
-    return hist_dist.rvs(size=n_samples)
+    """Samples the posterior positions.
+
+    Parameters
+    ----------
+    posterior : xarray.DataArray, shape (n_time, n_position_bins) or
+        shape (n_time, n_x_bins, n_y_bins)
+
+    Returns
+    -------
+    posterior_samples : numpy.ndarray, shape (n_time, n_samplese)
+
+    """
+    # Stack 2D positions into one dimension
+    try:
+        posterior = posterior.stack(
+            z=["x_position", "y_position"]
+        ).values
+    except KeyError:
+        posterior = posterior.values
+
+    place_bin_edges = place_bin_edges.squeeze()
+    n_time = posterior.shape[0]
+
+    posterior_samples = [
+        rv_histogram((posterior[time_ind], place_bin_edges)
+                     ).rvs(size=n_samples)
+        for time_ind in range(n_time)]
+
+    return np.asarray(posterior_samples)
