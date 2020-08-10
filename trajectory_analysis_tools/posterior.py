@@ -2,26 +2,27 @@ import numpy as np
 from scipy.stats import rv_histogram
 
 
-def maximum_a_posteriori_estimate(posterior_density):
-    '''
+def maximum_a_posteriori_estimate(posterior):
+    """Finds the most likely position of the posterior (the posterior mode)
 
     Parameters
     ----------
-    posterior_density : xarray.DataArray, shape (n_time, n_x_bins, n_y_bins)
+    posterior : xarray.DataArray, shape (n_time, n_position_bins) or
+        shape (n_time, n_x_bins, n_y_bins)
 
     Returns
     -------
     map_estimate : ndarray, shape (n_time,)
 
-    '''
+    """
     try:
-        stacked_posterior = np.log(posterior_density.stack(
+        stacked_posterior = np.log(posterior.stack(
             z=['x_position', 'y_position']))
         map_estimate = stacked_posterior.z[stacked_posterior.argmax('z')]
         map_estimate = np.asarray(map_estimate.values.tolist())
     except KeyError:
-        map_estimate = posterior_density.position[
-            np.log(posterior_density).argmax('position')]
+        map_estimate = posterior.position[
+            np.log(posterior).argmax('position')]
         map_estimate = np.asarray(map_estimate)[:, np.newaxis]
     return map_estimate
 
