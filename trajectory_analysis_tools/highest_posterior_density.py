@@ -21,10 +21,10 @@ def get_highest_posterior_threshold(posterior, coverage=0.95):
     # Stack 2D positions into one dimension
     try:
         posterior = posterior.stack(
-            z=["x_position", "y_position"]
-        ).values
+            position=["x_position", "y_position"]
+        ).dropna("position").values
     except KeyError:
-        posterior = posterior.values
+        posterior = posterior.dropna("position").values
     const = np.sum(posterior, axis=1, keepdims=True)
     sorted_norm_posterior = np.sort(posterior, axis=1)[:, ::-1] / const
     posterior_less_than_coverage = np.cumsum(
