@@ -25,12 +25,6 @@ def get_highest_posterior_threshold(posterior, coverage=0.95):
         ).values
     except KeyError:
         posterior = posterior.values
-
-    # Remove positions that are all NaNs
-    not_nan_positions = np.nonzero(
-        np.all(~np.isnan(posterior), axis=0))
-    posterior = posterior[:, not_nan_positions]
-
     const = np.sum(posterior, axis=1, keepdims=True)
     sorted_norm_posterior = np.sort(posterior, axis=1)[:, ::-1] / const
     posterior_less_than_coverage = np.cumsum(
