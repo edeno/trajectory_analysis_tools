@@ -15,7 +15,8 @@ def _get_MAP_estimate_2d_position_edges(posterior, track_graph, decoder):
     # Figure out which track segment it belongs to
     track_segment_id = decoder.place_bin_center_ind_to_edge_id_[
         map_position_ind]
-    mental_position_edges = np.array(track_graph.edges)[track_segment_id]
+    mental_position_edges = np.asarray(list(track_graph.edges))[
+        track_segment_id]
 
     return mental_position_2d, mental_position_edges
 
@@ -187,7 +188,7 @@ def get_trajectory_data(posterior, track_graph, decoder, position_info,
     ])
     track_segment_id = np.asarray(position_info.track_segment_id).astype(
         int).squeeze()
-    actual_edges = np.asarray(track_graph.edges)[track_segment_id]
+    actual_edges = np.asarray(list(track_graph.edges))[track_segment_id]
     actual_orientation = np.asarray(position_info[direction_variable])
 
     return (actual_projected_position, actual_edges, actual_orientation,
