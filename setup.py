@@ -2,7 +2,7 @@
 
 from setuptools import find_packages, setup
 
-INSTALL_REQUIRES = ['numpy', 'scipy', 'networkx', 'pandas']
+INSTALL_REQUIRES = ['numpy', 'scipy', 'networkx']
 TESTS_REQUIRE = ['pytest >= 2.7.1']
 
 setup(

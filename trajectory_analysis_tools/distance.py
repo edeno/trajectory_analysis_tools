@@ -1,6 +1,5 @@
 import networkx as nx
 import numpy as np
-import pandas as pd
 
 
 def _get_MAP_estimate_2d_position_edges(posterior, track_graph, decoder):
@@ -195,9 +194,10 @@ def get_trajectory_data(posterior, track_graph, decoder, position_info,
             mental_position_2d, mental_position_edges)
 
 
-def get_distance_metrics(track_graph, actual_projected_position, actual_edges,
-                         actual_orientation, mental_position_2d,
-                         mental_position_edges):
+def get_ahead_behind_distance(track_graph, actual_projected_position,
+                              actual_edges, actual_orientation,
+                              mental_position_2d, mental_position_edges,
+                              source="actual_position"):
     """
 
     Parameters
@@ -223,8 +223,7 @@ def get_distance_metrics(track_graph, actual_projected_position, actual_edges,
 
     """
     copy_graph = track_graph.copy()
-    mental_position_ahead_behind_animal = []
-    mental_position_distance_from_animal = []
+    ahead_behind_distance = []
 
     for actual_pos, actual_edge, orientation, map_pos, map_edge in zip(
             actual_projected_position, actual_edges, actual_orientation,
@@ -235,21 +234,15 @@ def get_distance_metrics(track_graph, actual_projected_position, actual_edges,
             map_edge)
 
         # Get metrics
-        mental_position_distance_from_animal.append(
-            _calculate_distance(copy_graph, source="actual_position",
-                                target="mental_position")
-        )
-        mental_position_ahead_behind_animal.append(
-            _calculate_ahead_behind(copy_graph, source="actual_position",
-                                    target="mental_position"))
+        distance = _calculate_distance(
+            copy_graph, source=source, target="mental_position")
+        ahead_behind = _calculate_ahead_behind(
+            copy_graph, source=source, target="mental_position")
+        ahead_behind_distance.append(ahead_behind * distance)
 
         # Cleanup: remove inserted nodes
         copy_graph.remove_node("actual_position")
         copy_graph.remove_node("head")
         copy_graph.remove_node("mental_position")
 
-    return pd.DataFrame(
-        {
-            "mental_position_ahead_behind_animal": mental_position_ahead_behind_animal,  # noqa
-            "mental_position_distance_from_animal": mental_position_distance_from_animal,  # noqa
-        })
+    return np.asarray(ahead_behind_distance)
