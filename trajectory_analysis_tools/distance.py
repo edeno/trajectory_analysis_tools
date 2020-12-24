@@ -8,12 +8,23 @@ def _get_MAP_estimate_2d_position_edges(posterior, track_graph, decoder):
         posterior.where(decoder.is_track_interior_).argmax(
             "position", skipna=True).values
     )
-    mental_position_2d = decoder.place_bin_center_2D_position_[
+    try:
+        place_bin_center_2D_position = decoder.place_bin_center_2D_position_
+    except AttributeError:
+        place_bin_center_2D_position = np.asarray(
+            decoder.place_bin_centers_nodes_df_.
+            loc[:, ['x_position', 'y_position']])
+
+    mental_position_2d = place_bin_center_2D_position[
         map_position_ind]
 
     # Figure out which track segment it belongs to
-    track_segment_id = decoder.place_bin_center_ind_to_edge_id_[
-        map_position_ind]
+    try:
+        edge_id = decoder.place_bin_center_ind_to_edge_id_
+    except AttributeError:
+        edge_id = np.asarray(decoder.place_bin_centers_nodes_df_.edge_id)
+
+    track_segment_id = edge_id[map_position_ind]
     mental_position_edges = np.asarray(list(track_graph.edges))[
         track_segment_id]
 
