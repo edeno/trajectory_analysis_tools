@@ -46,7 +46,7 @@ def sample_posterior(posterior, place_bin_edges, n_samples=1000):
             z=["x_position", "y_position"]
         ).values
     except KeyError:
-        posterior = posterior.values
+        posterior = np.asarray(posterior)
 
     place_bin_edges = place_bin_edges.squeeze()
     n_time = posterior.shape[0]
