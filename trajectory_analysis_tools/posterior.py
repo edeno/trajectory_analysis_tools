@@ -45,7 +45,7 @@ def sample_posterior(posterior, place_bin_edges, n_samples=1000):
         posterior = posterior.stack(
             z=["x_position", "y_position"]
         ).values
-    except KeyError:
+    except (KeyError, AttributeError):
         posterior = np.asarray(posterior)
 
     place_bin_edges = place_bin_edges.squeeze()
