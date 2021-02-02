@@ -37,7 +37,7 @@ def sample_posterior(posterior, place_bin_edges, n_samples=1000):
 
     Returns
     -------
-    posterior_samples : numpy.ndarray, shape (n_time, n_samplese)
+    posterior_samples : numpy.ndarray, shape (n_time, n_samples)
 
     """
     # Stack 2D positions into one dimension
