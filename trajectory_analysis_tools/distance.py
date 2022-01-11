@@ -2,17 +2,27 @@ import networkx as nx
 import numpy as np
 
 
-def _get_MAP_estimate_2d_position_edges(posterior, track_graph, decoder):
+def _get_MAP_estimate_2d_position_edges(posterior, track_graph, decoder,
+                                        environment_name):
+    try:
+        environments = decoder.environments
+        env = environments[environments.index(environment_name)]
+    except AttributeError:
+        try:
+            env = decoder.environment
+        except AttributeError:
+            env = decoder
+
     # Get 2D position on track from decoder MAP estimate
     map_position_ind = (
-        posterior.where(decoder.is_track_interior_).argmax(
+        posterior.where(env.is_track_interior_).argmax(
             "position", skipna=True).values
     )
     try:
-        place_bin_center_2D_position = decoder.place_bin_center_2D_position_
+        place_bin_center_2D_position = env.place_bin_center_2D_position_
     except AttributeError:
         place_bin_center_2D_position = np.asarray(
-            decoder.place_bin_centers_nodes_df_.
+            env.place_bin_centers_nodes_df_.
             loc[:, ['x_position', 'y_position']])
 
     mental_position_2d = place_bin_center_2D_position[
@@ -20,9 +30,9 @@ def _get_MAP_estimate_2d_position_edges(posterior, track_graph, decoder):
 
     # Figure out which track segment it belongs to
     try:
-        edge_id = decoder.place_bin_center_ind_to_edge_id_
+        edge_id = env.place_bin_center_ind_to_edge_id_
     except AttributeError:
-        edge_id = np.asarray(decoder.place_bin_centers_nodes_df_.edge_id)
+        edge_id = np.asarray(env.place_bin_centers_nodes_df_.edge_id)
 
     track_segment_id = edge_id[map_position_ind]
     mental_position_edges = np.asarray(list(track_graph.edges))[
@@ -156,7 +166,8 @@ def _calculate_distance(track_graph, source="actual_position",
 
 
 def get_trajectory_data(posterior, track_graph, decoder, position_info,
-                        direction_variable="head_direction"):
+                        direction_variable="head_direction",
+                        environment_name=''):
     """Convenience function for getting the most likely position of the
     posterior position and actual position/direction of the animal.
 
@@ -192,7 +203,7 @@ def get_trajectory_data(posterior, track_graph, decoder, position_info,
     """
     (mental_position_2d,
      mental_position_edges) = _get_MAP_estimate_2d_position_edges(
-        posterior, track_graph, decoder)
+        posterior, track_graph, decoder, environment_name)
     actual_projected_position = np.asarray(position_info[
         ["projected_x_position", "projected_y_position"]
     ])
