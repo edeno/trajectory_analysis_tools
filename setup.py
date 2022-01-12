@@ -7,7 +7,7 @@ TESTS_REQUIRE = ['pytest >= 2.7.1']
 
 setup(
     name='trajectory_analysis_tools',
-    version='0.4.0.dev0',
+    version='0.4.1.dev0',
     license='MIT',
     description=(''),
     author='',
@@ -16,4 +16,5 @@ setup(
     packages=find_packages(),
     install_requires=INSTALL_REQUIRES,
     tests_require=TESTS_REQUIRE,
+    extras_require=[],
 )
