@@ -16,5 +16,5 @@ setup(
     packages=find_packages(),
     install_requires=INSTALL_REQUIRES,
     tests_require=TESTS_REQUIRE,
-    extras_require=[],
+    extras_require={{}},
 )
