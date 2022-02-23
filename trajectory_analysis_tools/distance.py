@@ -165,8 +165,10 @@ def _calculate_distance(track_graph, source="actual_position",
                                    target=target, weight='distance')
 
 
-def get_trajectory_data(posterior, track_graph, decoder, position_info,
-                        direction_variable="head_direction",
+def get_trajectory_data(posterior, track_graph, decoder,
+                        actual_projected_position,
+                        track_segment_id,
+                        actual_orientation,
                         environment_name=''):
     """Convenience function for getting the most likely position of the
     posterior position and actual position/direction of the animal.
@@ -180,11 +182,9 @@ def get_trajectory_data(posterior, track_graph, decoder, position_info,
     decoder : SortedSpikesDecoder, ClusterlessDecoder, SortedSpikesClassifier,
               ClusterlessClassifier
         Model used to decode the data
-    position_info : pandas.DataFrame, shape (n_time, n_variables)
-        Information about the animal's behavior
-    direction_variable : str
-        The variable in `position_info` that indicates the direction of the
-        animal
+    actual_projected_position : numpy.ndarray, shape (n_time, 2)
+    track_segment_id : numpy.ndarray, shape (n_time,)
+    actual_orientation : numpy.ndarray, shape (n_time,)
 
     Returns
     -------
@@ -204,13 +204,11 @@ def get_trajectory_data(posterior, track_graph, decoder, position_info,
     (mental_position_2d,
      mental_position_edges) = _get_MAP_estimate_2d_position_edges(
         posterior, track_graph, decoder, environment_name)
-    actual_projected_position = np.asarray(position_info[
-        ["projected_x_position", "projected_y_position"]
-    ])
-    track_segment_id = np.asarray(position_info.track_segment_id).astype(
+    actual_projected_position = np.asarray(actual_projected_position)
+    track_segment_id = np.asarray(track_segment_id).astype(
         int).squeeze()
     actual_edges = np.asarray(list(track_graph.edges))[track_segment_id]
-    actual_orientation = np.asarray(position_info[direction_variable])
+    actual_orientation = np.asarray(actual_orientation)
 
     return (actual_projected_position, actual_edges, actual_orientation,
             mental_position_2d, mental_position_edges)
