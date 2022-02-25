@@ -7,7 +7,7 @@ TESTS_REQUIRE = ['pytest >= 2.7.1']
 
 setup(
     name='trajectory_analysis_tools',
-    version='0.4.2.dev0',
+    version='0.4.3.dev0',
     license='MIT',
     description=(''),
     author='Eric Denovellis',
