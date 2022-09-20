@@ -68,3 +68,49 @@ def get_distance_on_graph(
             track_graph, source=node_id1, target=node_id2, weight='distance'))
 
     return np.asarray(distance)
+
+
+def head_direction_simliarity(
+        head_position: np.ndarray,
+        head_direction: np.ndarray,
+        position2: np.ndarray,
+) -> np.ndarray:
+
+    head_direction = head_direction.squeeze()
+
+    if head_position.ndim < 2:
+        head_position = head_position[np.newaxis]
+    if position2.ndim < 2:
+        position2 = position2[np.newaxis]
+
+    position2_direction = np.arctan2(
+        position2[:, 1] - head_position[:, 1],
+        position2[:, 0] - head_position[:, 0])
+
+    return np.cos(head_direction - position2_direction)
+
+
+def get_ahead_behind_distance(
+        track_graph: nx.Graph,
+        head_position: np.ndarray,
+        head_direction: np.ndarray,
+        map_position: np.ndarray,
+) -> np.ndarray:
+
+    distance = get_distance_on_graph(
+        track_graph,
+        head_position,
+        map_position,
+    )
+
+    direction_similarity = head_direction_simliarity(
+        head_position,
+        head_direction,
+        map_position,
+    )
+    ahead_behind = np.sign(direction_similarity)
+    ahead_behind[np.isclose(ahead_behind, 0.0)] = 1.0
+
+    ahead_behind_distance = ahead_behind * distance
+
+    return ahead_behind_distance
