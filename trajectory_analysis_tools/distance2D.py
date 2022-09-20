@@ -9,10 +9,8 @@ def make_track_graph2D_from_environment(
 ) -> nx.Graph:
 
     track_graph = nx.Graph()
-    is_track_interior = environment.is_track_interior_.ravel(order='F')
-    for node_id, node_position in zip(
-            np.nonzero(is_track_interior)[0],
-            environment.place_bin_centers_[is_track_interior]):
+
+    for node_id, node_position in enumerate(environment.place_bin_centers_):
         track_graph.add_node(node_id, pos=tuple(node_position))
 
     edges = []
