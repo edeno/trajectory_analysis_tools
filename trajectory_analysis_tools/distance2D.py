@@ -7,6 +7,17 @@ from scipy.spatial.distance import cdist
 def make_track_graph2D_from_environment(
         environment: replay_trajectory_classification.environments.Environment
 ) -> nx.Graph:
+    """Creates a graph of the position where on track nodes are
+    connected by edges.
+
+    Parameters
+    ----------
+    environment : replay_trajectory_classification.environments.Environment
+
+    Returns
+    -------
+    track_graph : nx.Graph
+    """
 
     track_graph = nx.Graph()
 
@@ -45,11 +56,24 @@ def make_track_graph2D_from_environment(
     return track_graph
 
 
-def get_distance_on_graph(
+def get_2D_distance(
     track_graph: nx.Graph,
     position1: np.ndarray,
     position2: np.ndarray
 ) -> np.ndarray:
+    """Distance of two points along the graph of the track.
+
+
+    Parameters
+    ----------
+    track_graph : nx.Graph
+    position1 : np.ndarray, shape (n_time, 2)
+    position2 : np.ndarray, shape (n_time, 2)
+
+    Returns
+    -------
+    distance : np.ndarray
+    """
 
     if position1.ndim < 2:
         position1 = position1[np.newaxis]
@@ -75,6 +99,20 @@ def head_direction_simliarity(
         head_direction: np.ndarray,
         position2: np.ndarray,
 ) -> np.ndarray:
+    """Cosine similarity of the head direction vector with the vector from the
+    animal's head to MAP estimate of the decoded position.
+
+    Parameters
+    ----------
+    head_position : np.ndarray, shape (n_time, 2)
+    head_direction : np.ndarray, shape (n_time, 2)
+    position2 : np.ndarray, shape (n_time, 2)
+
+    Returns
+    -------
+    cosine_similarity : np.ndarray, shape (n_time,)
+
+    """
 
     head_direction = head_direction.squeeze()
 
@@ -90,14 +128,29 @@ def head_direction_simliarity(
     return np.cos(head_direction - position2_direction)
 
 
-def get_ahead_behind_distance(
+def get_ahead_behind_distance2D(
         track_graph: nx.Graph,
         head_position: np.ndarray,
         head_direction: np.ndarray,
         map_position: np.ndarray,
 ) -> np.ndarray:
+    """Distance of the MAP decoded position to the animal's head position where
+     the sign indicates if the decoded position is in front of the
+     head (positive) or behind (negative).
 
-    distance = get_distance_on_graph(
+    Parameters
+    ----------
+    track_graph : nx.Graph
+    head_position : np.ndarray, shape (n_time, 2)
+    head_direction : np.ndarray, shape (n_time, 2)
+    map_position : np.ndarray, shape (n_time, 2)
+
+    Returns
+    -------
+    ahead_behind_distance : np.ndarray
+    """
+
+    distance = get_2D_distance(
         track_graph,
         head_position,
         map_position,
