@@ -2,12 +2,13 @@
 
 from setuptools import find_packages, setup
 
-INSTALL_REQUIRES = ['numpy', 'scipy', 'networkx']
+INSTALL_REQUIRES = ['numpy', 'scipy', 'networkx',
+                    'replay_trajectory_classification']
 TESTS_REQUIRE = ['pytest >= 2.7.1']
 
 setup(
     name='trajectory_analysis_tools',
-    version='1.0.0',
+    version='1.0.1',
     license='MIT',
     description=(''),
     author='Eric Denovellis',
