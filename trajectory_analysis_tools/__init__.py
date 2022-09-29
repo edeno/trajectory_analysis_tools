@@ -1,6 +1,7 @@
 # flake8: noqa
 from trajectory_analysis_tools.distance1D import (
     get_ahead_behind_distance,
+    get_map_speed,
     get_trajectory_data,
 )
 from trajectory_analysis_tools.distance2D import (
