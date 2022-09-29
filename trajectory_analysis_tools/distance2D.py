@@ -86,12 +86,16 @@ def get_map_estimate_direction_from_track_graph(
         head_position_node = node_ids[find_closest_node_ind(head_pos, node_positions)]
         map_estimate_node = node_ids[find_closest_node_ind(map_est, node_positions)]
 
-        first_node_on_path = nx.shortest_path(
-            track_graph,
-            source=head_position_node,
-            target=map_estimate_node,
-            weight="distance",
-        )[1]
+        try:
+            first_node_on_path = nx.shortest_path(
+                track_graph,
+                source=head_position_node,
+                target=map_estimate_node,
+                weight="distance",
+            )[1]
+        except IndexError:
+            # head_position_node and map_estimate_node are the same
+            first_node_on_path = map_estimate_node
 
         head_position_node_pos = track_graph.nodes[head_position_node]["pos"]
         first_node_on_path_pos = track_graph.nodes[first_node_on_path]["pos"]
