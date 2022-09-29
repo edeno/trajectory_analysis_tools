@@ -16,13 +16,11 @@ def maximum_a_posteriori_estimate(posterior):
 
     """
     try:
-        stacked_posterior = np.log(posterior.stack(
-            z=['x_position', 'y_position']))
-        map_estimate = stacked_posterior.z[stacked_posterior.argmax('z')]
+        stacked_posterior = np.log(posterior.stack(z=["x_position", "y_position"]))
+        map_estimate = stacked_posterior.z[stacked_posterior.argmax("z")]
         map_estimate = np.asarray(map_estimate.values.tolist())
     except KeyError:
-        map_estimate = posterior.position[
-            np.log(posterior).argmax('position')]
+        map_estimate = posterior.position[np.log(posterior).argmax("position")]
         map_estimate = np.asarray(map_estimate)[:, np.newaxis]
     return map_estimate
 
@@ -42,9 +40,7 @@ def sample_posterior(posterior, place_bin_edges, n_samples=1000):
     """
     # Stack 2D positions into one dimension
     try:
-        posterior = posterior.stack(
-            z=["x_position", "y_position"]
-        ).values
+        posterior = posterior.stack(z=["x_position", "y_position"]).values
     except (KeyError, AttributeError):
         posterior = np.asarray(posterior)
 
@@ -52,8 +48,8 @@ def sample_posterior(posterior, place_bin_edges, n_samples=1000):
     n_time = posterior.shape[0]
 
     posterior_samples = [
-        rv_histogram((posterior[time_ind], place_bin_edges)
-                     ).rvs(size=n_samples)
-        for time_ind in range(n_time)]
+        rv_histogram((posterior[time_ind], place_bin_edges)).rvs(size=n_samples)
+        for time_ind in range(n_time)
+    ]
 
     return np.asarray(posterior_samples)

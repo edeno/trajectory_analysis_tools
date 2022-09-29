@@ -2,8 +2,9 @@ import networkx as nx
 import numpy as np
 
 
-def _get_MAP_estimate_2d_position_edges(posterior, track_graph, decoder,
-                                        environment_name):
+def _get_MAP_estimate_2d_position_edges(
+    posterior, track_graph, decoder, environment_name
+):
     try:
         environments = decoder.environments
         env = environments[environments.index(environment_name)]
@@ -15,18 +16,16 @@ def _get_MAP_estimate_2d_position_edges(posterior, track_graph, decoder,
 
     # Get 2D position on track from decoder MAP estimate
     map_position_ind = (
-        posterior.where(env.is_track_interior_).argmax(
-            "position", skipna=True).values
+        posterior.where(env.is_track_interior_).argmax("position", skipna=True).values
     )
     try:
         place_bin_center_2D_position = env.place_bin_center_2D_position_
     except AttributeError:
         place_bin_center_2D_position = np.asarray(
-            env.place_bin_centers_nodes_df_.
-            loc[:, ['x_position', 'y_position']])
+            env.place_bin_centers_nodes_df_.loc[:, ["x_position", "y_position"]]
+        )
 
-    mental_position_2d = place_bin_center_2D_position[
-        map_position_ind]
+    mental_position_2d = place_bin_center_2D_position[map_position_ind]
 
     # Figure out which track segment it belongs to
     try:
@@ -35,8 +34,7 @@ def _get_MAP_estimate_2d_position_edges(posterior, track_graph, decoder,
         edge_id = np.asarray(env.place_bin_centers_nodes_df_.edge_id)
 
     track_segment_id = edge_id[map_position_ind]
-    mental_position_edges = np.asarray(list(track_graph.edges))[
-        track_segment_id]
+    mental_position_edges = np.asarray(list(track_graph.edges))[track_segment_id]
 
     return mental_position_2d, mental_position_edges
 
@@ -71,8 +69,9 @@ def _get_distance_between_nodes(track_graph, node1, node2):
     return np.sqrt(np.sum((node1_pos - node2_pos) ** 2))
 
 
-def _setup_track_graph(track_graph, actual_pos, actual_edge, head_direction,
-                       mental_pos, mental_edge):
+def _setup_track_graph(
+    track_graph, actual_pos, actual_edge, head_direction, mental_pos, mental_edge
+):
     """Takes the track graph and add nodes for the animal's actual position,
     mental position, and head direction.
 
@@ -95,16 +94,17 @@ def _setup_track_graph(track_graph, actual_pos, actual_edge, head_direction,
     track_graph.add_node("mental_position", pos=mental_pos)
 
     # determine which node head is pointing towards
-    node_ahead = _points_toward_node(
-        track_graph, actual_edge, head_direction)
+    node_ahead = _points_toward_node(track_graph, actual_edge, head_direction)
     node_behind = actual_edge[~np.isin(actual_edge, node_ahead)][0]
 
     # insert edges between nodes
     if np.all(actual_edge == mental_edge):  # actual and mental on same edge
         actual_pos_distance = _get_distance_between_nodes(
-            track_graph, "actual_position", node_ahead)
+            track_graph, "actual_position", node_ahead
+        )
         mental_pos_distance = _get_distance_between_nodes(
-            track_graph, "mental_position", node_ahead)
+            track_graph, "mental_position", node_ahead
+        )
 
         if actual_pos_distance < mental_pos_distance:
             node_order = [
@@ -112,7 +112,7 @@ def _setup_track_graph(track_graph, actual_pos, actual_edge, head_direction,
                 "head",
                 "actual_position",
                 "mental_position",
-                node_behind
+                node_behind,
             ]
         else:
             node_order = [
@@ -120,25 +120,20 @@ def _setup_track_graph(track_graph, actual_pos, actual_edge, head_direction,
                 "mental_position",
                 "head",
                 "actual_position",
-                node_behind
+                node_behind,
             ]
     else:  # actual and mental are on different edges
-        node_order = [
-            node_ahead,
-            "head",
-            "actual_position",
-            node_behind
-        ]
+        node_order = [node_ahead, "head", "actual_position", node_behind]
 
         distance = _get_distance_between_nodes(
-            track_graph, mental_edge[0], "mental_position")
-        track_graph.add_edge(
-            mental_edge[0], "mental_position", distance=distance)
+            track_graph, mental_edge[0], "mental_position"
+        )
+        track_graph.add_edge(mental_edge[0], "mental_position", distance=distance)
 
         distance = _get_distance_between_nodes(
-            track_graph, "mental_position", mental_edge[1])
-        track_graph.add_edge(
-            "mental_position", mental_edge[1], distance=distance)
+            track_graph, "mental_position", mental_edge[1]
+        )
+        track_graph.add_edge("mental_position", mental_edge[1], distance=distance)
 
     for node1, node2 in zip(node_order[:-1], node_order[1:]):
         distance = _get_distance_between_nodes(track_graph, node1, node2)
@@ -147,29 +142,33 @@ def _setup_track_graph(track_graph, actual_pos, actual_edge, head_direction,
     return track_graph
 
 
-def _calculate_ahead_behind(track_graph, source="actual_position",
-                            target="mental_position"):
+def _calculate_ahead_behind(
+    track_graph, source="actual_position", target="mental_position"
+):
     path = nx.shortest_path(
-        track_graph,
-        source=source,
-        target=target,
-        weight="distance",
+        track_graph, source=source, target=target, weight="distance",
     )
 
     return 1 if "head" in path else -1
 
 
-def _calculate_distance(track_graph, source="actual_position",
-                        target="mental_position"):
-    return nx.shortest_path_length(track_graph, source=source,
-                                   target=target, weight='distance')
+def _calculate_distance(
+    track_graph, source="actual_position", target="mental_position"
+):
+    return nx.shortest_path_length(
+        track_graph, source=source, target=target, weight="distance"
+    )
 
 
-def get_trajectory_data(posterior, track_graph, decoder,
-                        actual_projected_position,
-                        track_segment_id,
-                        actual_orientation,
-                        environment_name=''):
+def get_trajectory_data(
+    posterior,
+    track_graph,
+    decoder,
+    actual_projected_position,
+    track_segment_id,
+    actual_orientation,
+    environment_name="",
+):
     """Convenience function for getting the most likely position of the
     posterior position and actual position/direction of the animal.
 
@@ -201,23 +200,32 @@ def get_trajectory_data(posterior, track_graph, decoder,
         to.
 
     """
-    (mental_position_2d,
-     mental_position_edges) = _get_MAP_estimate_2d_position_edges(
-        posterior, track_graph, decoder, environment_name)
+    (mental_position_2d, mental_position_edges) = _get_MAP_estimate_2d_position_edges(
+        posterior, track_graph, decoder, environment_name
+    )
     actual_projected_position = np.asarray(actual_projected_position)
-    track_segment_id = np.asarray(track_segment_id).astype(
-        int).squeeze()
+    track_segment_id = np.asarray(track_segment_id).astype(int).squeeze()
     actual_edges = np.asarray(list(track_graph.edges))[track_segment_id]
     actual_orientation = np.asarray(actual_orientation)
 
-    return (actual_projected_position, actual_edges, actual_orientation,
-            mental_position_2d, mental_position_edges)
+    return (
+        actual_projected_position,
+        actual_edges,
+        actual_orientation,
+        mental_position_2d,
+        mental_position_edges,
+    )
 
 
-def get_ahead_behind_distance(track_graph, actual_projected_position,
-                              actual_edges, actual_orientation,
-                              mental_position_2d, mental_position_edges,
-                              source="actual_position"):
+def get_ahead_behind_distance(
+    track_graph,
+    actual_projected_position,
+    actual_edges,
+    actual_orientation,
+    mental_position_2d,
+    mental_position_edges,
+    source="actual_position",
+):
     """
 
     Parameters
@@ -246,18 +254,24 @@ def get_ahead_behind_distance(track_graph, actual_projected_position,
     ahead_behind_distance = []
 
     for actual_pos, actual_edge, orientation, map_pos, map_edge in zip(
-            actual_projected_position, actual_edges, actual_orientation,
-            mental_position_2d, mental_position_edges):
+        actual_projected_position,
+        actual_edges,
+        actual_orientation,
+        mental_position_2d,
+        mental_position_edges,
+    ):
         # Insert nodes for actual position, mental position, head
         copy_graph = _setup_track_graph(
-            copy_graph, actual_pos, actual_edge, orientation, map_pos,
-            map_edge)
+            copy_graph, actual_pos, actual_edge, orientation, map_pos, map_edge
+        )
 
         # Get metrics
         distance = _calculate_distance(
-            copy_graph, source=source, target="mental_position")
+            copy_graph, source=source, target="mental_position"
+        )
         ahead_behind = _calculate_ahead_behind(
-            copy_graph, source=source, target="mental_position")
+            copy_graph, source=source, target="mental_position"
+        )
         ahead_behind_distance.append(ahead_behind * distance)
 
         # Cleanup: remove inserted nodes
