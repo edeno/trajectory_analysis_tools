@@ -124,8 +124,8 @@ def get_2D_distance(
         distance = list()
 
         for pos1, pos2 in zip(position1, position2):
-            node_id1 = find_closest_node(node_positions, pos1)
-            node_id2 = find_closest_node(node_positions, pos2)
+            node_id1 = find_closest_node(pos1, node_positions)
+            node_id2 = find_closest_node(pos2, node_positions)
             distance.append(
                 nx.shortest_path_length(
                     track_graph, source=node_id1, target=node_id2, weight="distance"
