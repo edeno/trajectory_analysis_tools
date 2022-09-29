@@ -1,5 +1,32 @@
 import networkx as nx
 import numpy as np
+from scipy.ndimage import gaussian_filter1d
+
+
+def _gaussian_smooth(data, sigma, sampling_frequency, axis=0, truncate=8):
+    """1D convolution of the data with a Gaussian.
+
+    The standard deviation of the gaussian is in the units of the sampling
+    frequency. The function is just a wrapper around scipy's
+    `gaussian_filter1d`, The support is truncated at 8 by default, instead
+    of 4 in `gaussian_filter1d`
+
+    Parameters
+    ----------
+    data : array_like
+    sigma : float
+    sampling_frequency : int
+    axis : int, optional
+    truncate : int, optional
+
+    Returns
+    -------
+    smoothed_data : array_like
+
+    """
+    return gaussian_filter1d(
+        data, sigma * sampling_frequency, truncate=truncate, axis=axis, mode="constant"
+    )
 
 
 def _get_MAP_estimate_2d_position_edges(
@@ -146,7 +173,10 @@ def _calculate_ahead_behind(
     track_graph, source="actual_position", target="mental_position"
 ):
     path = nx.shortest_path(
-        track_graph, source=source, target=target, weight="distance",
+        track_graph,
+        source=source,
+        target=target,
+        weight="distance",
     )
 
     return 1 if "head" in path else -1
@@ -286,8 +316,11 @@ def get_map_speed(
     posterior: np.ndarray,
     track_graph_with_bin_centers_edges: nx.Graph,
     place_bin_center_ind_to_node: np.ndarray,
-    dt: float,
+    sampling_frequency: float = 500.0,
+    smooth_sigma: float = 0.0025,
 ) -> np.ndarray:
+
+    dt = 1 / sampling_frequency
     posterior = np.asarray(posterior)
     map_position_ind = np.argmax(posterior, axis=1)
     node_ids = place_bin_center_ind_to_node[map_position_ind]
@@ -354,4 +387,4 @@ def get_map_speed(
             )
             / dt,
         )
-    return np.abs(speed)
+    return _gaussian_smooth(np.abs(speed), smooth_sigma, sampling_frequency)
