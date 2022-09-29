@@ -1,6 +1,7 @@
 import networkx as nx
 import numpy as np
 import replay_trajectory_classification
+from scipy.ndimage import gaussian_filter1d
 from scipy.spatial.distance import cdist
 
 
@@ -68,7 +69,9 @@ def find_closest_node_ind(pos, node_positions):
 
 
 def get_map_estimate_direction_from_track_graph(
-    head_position: np.ndarray, map_estimate: np.ndarray, track_graph: nx.Graph,
+    head_position: np.ndarray,
+    map_estimate: np.ndarray,
+    track_graph: nx.Graph,
 ) -> np.ndarray:
     node_positions = nx.get_node_attributes(track_graph, "pos")
     node_ids = np.asarray(list(node_positions.keys()))
@@ -111,7 +114,9 @@ def get_map_estimate_direction_from_track_graph(
 
 
 def get_2D_distance(
-    position1: np.ndarray, position2: np.ndarray, track_graph: nx.Graph = None,
+    position1: np.ndarray,
+    position2: np.ndarray,
+    track_graph: nx.Graph = None,
 ) -> np.ndarray:
     """Distance of two points along the graph of the track.
 
@@ -243,3 +248,46 @@ def get_ahead_behind_distance2D(
     ahead_behind_distance = ahead_behind * distance
 
     return ahead_behind_distance
+
+
+def _gaussian_smooth(data, sigma, sampling_frequency, axis=0, truncate=8):
+    """1D convolution of the data with a Gaussian.
+
+    The standard deviation of the gaussian is in the units of the sampling
+    frequency. The function is just a wrapper around scipy's
+    `gaussian_filter1d`, The support is truncated at 8 by default, instead
+    of 4 in `gaussian_filter1d`
+
+    Parameters
+    ----------
+    data : array_like
+    sigma : float
+    sampling_frequency : int
+    axis : int, optional
+    truncate : int, optional
+
+    Returns
+    -------
+    smoothed_data : array_like
+
+    """
+    return gaussian_filter1d(
+        data, sigma * sampling_frequency, truncate=truncate, axis=axis, mode="constant"
+    )
+
+
+def get_velocity(position, time=None, sigma=0.0025, sampling_frequency=500):
+    if time is None:
+        time = np.arange(position.shape[0])
+
+    return _gaussian_smooth(
+        np.gradient(position, time, axis=0),
+        sigma,
+        sampling_frequency,
+        axis=0,
+        truncate=8,
+    )
+
+
+def get_speed(velocity):
+    return np.sqrt(np.sum(velocity**2, axis=1))
