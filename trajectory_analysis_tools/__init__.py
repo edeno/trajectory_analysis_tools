@@ -7,6 +7,7 @@ from trajectory_analysis_tools.distance1D import (
 from trajectory_analysis_tools.distance2D import (
     get_2D_distance,
     get_ahead_behind_distance2D,
+    get_map_estimate_direction_from_track_graph,
     get_speed,
     get_velocity,
     head_direction_simliarity,
