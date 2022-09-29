@@ -21,7 +21,7 @@ def make_track_graph2D_from_environment(
 
     track_graph = nx.Graph()
 
-    for node_id, node_position, is_interior in enumerate(
+    for node_id, (node_position, is_interior) in enumerate(
         zip(
             environment.place_bin_centers_,
             environment.is_track_interior_.ravel(order="F"),
