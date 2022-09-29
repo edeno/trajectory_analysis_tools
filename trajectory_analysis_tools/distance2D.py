@@ -56,21 +56,30 @@ def make_track_graph2D_from_environment(
     return track_graph
 
 
-def find_closest_node(pos, node_positions):
+def find_closest_node_ind(pos, node_positions):
     return np.argmin(cdist(node_positions, pos[np.newaxis]))
 
 
 def get_map_estimate_direction_from_track_graph(
-    track_graph, head_position, map_estimate
-):
+    head_position: np.ndarray,
+    map_estimate: np.ndarray,
+    track_graph: nx.Graph,
+    is_track_interior: np.ndarray = None,
+) -> np.ndarray:
     node_positions = nx.get_node_attributes(track_graph, "pos")
+    node_ids = np.asarray(list(node_positions.keys()))
     node_positions = np.asarray(list(node_positions.values()))
+
+    if is_track_interior is not None:
+        is_track_interior = is_track_interior.ravel(order="F")
+        node_positions = node_positions[is_track_interior]
+        node_ids = node_ids[is_track_interior]
 
     map_estimate_direction = []
 
     for head_pos, map_est in zip(head_position, map_estimate):
-        head_position_node = find_closest_node(head_pos)
-        map_estimate_node = find_closest_node(map_est)
+        head_position_node = node_ids[find_closest_node_ind(head_pos, node_positions)]
+        map_estimate_node = node_ids[find_closest_node_ind(map_est, node_positions)]
 
         first_node_on_path = nx.shortest_path(
             track_graph,
@@ -93,7 +102,10 @@ def get_map_estimate_direction_from_track_graph(
 
 
 def get_2D_distance(
-    position1: np.ndarray, position2: np.ndarray, track_graph: nx.Graph = None,
+    position1: np.ndarray,
+    position2: np.ndarray,
+    track_graph: nx.Graph = None,
+    is_track_interior: np.ndarray = None,
 ) -> np.ndarray:
     """Distance of two points along the graph of the track.
 
@@ -103,6 +115,7 @@ def get_2D_distance(
     position1 : np.ndarray, shape (n_time, 2)
     position2 : np.ndarray, shape (n_time, 2)
     track_graph : nx.Graph or None
+    is_track_interior : np.ndarray, shape (n_place_bins_x, n_place_bins_y)
 
     Returns
     -------
@@ -119,13 +132,19 @@ def get_2D_distance(
         distance = np.linalg.norm(position1 - position2, axis=1)
     else:
         node_positions = nx.get_node_attributes(track_graph, "pos")
+        node_ids = np.asarray(list(node_positions.keys()))
         node_positions = np.asarray(list(node_positions.values()))
+
+        if is_track_interior is not None:
+            is_track_interior = is_track_interior.ravel(order="F")
+            node_positions = node_positions[is_track_interior]
+            node_ids = node_ids[is_track_interior]
 
         distance = list()
 
         for pos1, pos2 in zip(position1, position2):
-            node_id1 = find_closest_node(pos1, node_positions)
-            node_id2 = find_closest_node(pos2, node_positions)
+            node_id1 = node_ids[find_closest_node_ind(pos1, node_positions)]
+            node_id2 = node_ids[find_closest_node_ind(pos2, node_positions)]
             distance.append(
                 nx.shortest_path_length(
                     track_graph, source=node_id1, target=node_id2, weight="distance"
@@ -141,6 +160,7 @@ def head_direction_simliarity(
     head_direction: np.ndarray,
     map_estimate: np.ndarray,
     track_graph: nx.Graph = None,
+    is_track_interior: np.ndarray = None,
 ) -> np.ndarray:
     """Cosine similarity of the head direction vector with the vector from the
     animal's head to MAP estimate of the decoded position.
@@ -149,7 +169,9 @@ def head_direction_simliarity(
     ----------
     head_position : np.ndarray, shape (n_time, 2)
     head_direction : np.ndarray, shape (n_time, 2)
-    position2 : np.ndarray, shape (n_time, 2)
+    map_estimate : np.ndarray, shape (n_time, 2)
+    track_graph : nx.Graph or None
+    is_track_interior : np.ndarray, shape (n_place_bins_x, n_place_bins_y)
 
     Returns
     -------
@@ -171,7 +193,7 @@ def head_direction_simliarity(
         )
     else:
         map_estimate_direction = get_map_estimate_direction_from_track_graph(
-            track_graph, head_position, map_estimate
+            head_position, map_estimate, track_graph, is_track_interior
         )
 
     return np.cos(head_direction - map_estimate_direction)
@@ -182,6 +204,7 @@ def get_ahead_behind_distance2D(
     head_direction: np.ndarray,
     map_position: np.ndarray,
     track_graph: nx.Graph = None,
+    is_track_interior: np.ndarray = None,
 ) -> np.ndarray:
     """Distance of the MAP decoded position to the animal's head position where
      the sign indicates if the decoded position is in front of the
@@ -193,16 +216,19 @@ def get_ahead_behind_distance2D(
     head_direction : np.ndarray, shape (n_time, 2)
     map_position : np.ndarray, shape (n_time, 2)
     track_graph : nx.Graph or None
+    is_track_interior : np.ndarray or None, shape (n_place_bins_x, n_place_bins_y)
 
     Returns
     -------
     ahead_behind_distance : np.ndarray
     """
 
-    distance = get_2D_distance(head_position, map_position, track_graph)
+    distance = get_2D_distance(
+        head_position, map_position, track_graph, is_track_interior
+    )
 
     direction_similarity = head_direction_simliarity(
-        head_position, head_direction, map_position, track_graph,
+        head_position, head_direction, map_position, track_graph, is_track_interior,
     )
     ahead_behind = np.sign(direction_similarity)
     ahead_behind[np.isclose(ahead_behind, 0.0)] = 1.0
