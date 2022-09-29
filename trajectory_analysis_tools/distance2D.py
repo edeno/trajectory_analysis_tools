@@ -127,6 +127,8 @@ def get_2D_distance(
     distance : np.ndarray
 
     """
+    position1 = np.asarray(position1)
+    position2 = np.asarray(position2)
 
     if position1.ndim < 2:
         position1 = position1[np.newaxis]
@@ -182,6 +184,9 @@ def head_direction_simliarity(
     cosine_similarity : np.ndarray, shape (n_time,)
 
     """
+    head_position = np.asarray(head_position)
+    head_direction = np.asarray(head_direction)
+    map_estimate = np.asarray(map_estimate)
 
     head_direction = head_direction.squeeze()
 
@@ -231,6 +236,8 @@ def get_ahead_behind_distance2D(
         head_position, head_direction, map_position, track_graph
     )
     ahead_behind = np.sign(direction_similarity)
+
+    # If there is no direction same point, arbitrarily set to positive
     ahead_behind[np.isclose(ahead_behind, 0.0)] = 1.0
 
     ahead_behind_distance = ahead_behind * distance
