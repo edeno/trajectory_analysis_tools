@@ -5,7 +5,7 @@ from scipy.ndimage import gaussian_filter1d
 from scipy.spatial.distance import cdist
 
 
-def make_track_graph2D_from_environment(
+def make_2D_track_graph_from_environment(
     environment: replay_trajectory_classification.environments.Environment,
 ) -> nx.Graph:
     """Creates a graph of the position where on track nodes are

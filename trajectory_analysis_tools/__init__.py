@@ -8,7 +8,7 @@ from trajectory_analysis_tools.distance2D import (
     get_2D_distance,
     get_ahead_behind_distance2D,
     head_direction_simliarity,
-    make_track_graph2D_from_environment,
+    make_2D_track_graph_from_environment,
 )
 from trajectory_analysis_tools.highest_posterior_density import (
     get_highest_posterior_threshold,
